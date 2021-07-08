@@ -1,5 +1,6 @@
-// SET THIS VARIABLE TO "TRUE" IF YOU WANT TO WATCH ALL LOGS
-var debug = false;
+// SET THIS VARIABLES TO "TRUE" IF YOU WANT TO WATCH ALL LOGS
+var debug = true;
+var maximumDebug = true;
 
 
 
@@ -100,6 +101,9 @@ function inputValues () {
 
 function selectFile() {
 
+    if (maximumDebug)
+        console.log("selectFile()");
+
     checkedPersonsCount = 0;
     correctPersonsCount = 0;
     incorrectPersonsCount = 0;
@@ -133,6 +137,10 @@ function selectFile() {
 
 
 function startParsing(fileName) {
+
+    if (maximumDebug)
+        console.log("Starting parsing");
+
     currentWorkbook = new XLSX.Workbook();
 
     currentWorkbook.xlsx.readFile('input/' + fileName)
@@ -202,6 +210,10 @@ function runNewThread() {
 // Working with CAPTCHA
 
 function getCaptchaPage() {
+
+    if (maximumDebug)
+        console.log("GETTING CAPTCHA PAGE -----------------------------------------");
+
     var options = {
         host: 'service.nalog.ru',
         port: 443,
@@ -237,6 +249,10 @@ function getCaptchaPage() {
 }
 
 function getCaptcha(html) {
+
+    if (maximumDebug)
+        console.log("EXTRACTING CAPTCHA FROM PAGE -------------------");
+
     var captchaToken = findCaptchaToken(html);
 
     if (!captchaToken)
@@ -270,11 +286,15 @@ function findCaptchaToken(html) {
 }
 
 function loadCaptchaBase64(captchaToken) {
-    https.get('https://service.nalog.ru/static/captcha.html?a='+captchaToken+'&version=3', function (response) {
+    https.get('https://service.nalog.ru/static/captcha.html?a='+captchaToken+'&version=1', function (response) {
         response.setEncoding('base64');
         var body = "";
         response.on('data', (data) => { body += data; });
         response.on('end', () => {
+
+            if (maximumDebug)
+                console.log("CAPTCHA BASE64: " + body);
+
             onCaptchaLoaded(body, captchaToken);
         });
     }).on('error', function (e) {
@@ -288,8 +308,10 @@ function loadCaptchaBase64(captchaToken) {
 }
 
 function onCaptchaLoaded(base64, captchaToken) {
-//console.log("\n\n\n" + base64 + "\n\n\n");
-//return;
+
+    if (maximumDebug)
+        console.log("CREATING CAPTCHA SOLVERS TASK ----------------");
+
     var responseBody = "";
 
     var postData = JSON.stringify({
@@ -568,6 +590,10 @@ function checkPerson(captcha, captchaToken) {
     if (debug)
         console.log(serialize(postData));
 
+
+    if (maximumDebug)
+        console.log(postData);
+
     function getDate(date){
 
         if (!date)
@@ -625,7 +651,7 @@ function checkPerson(captcha, captchaToken) {
     };
 
     var req = https.request(options, (res) => {
-        res.on('data', (data) => { responseBody += data });
+        res.on('data', (data) => { responseBody += data; if (maximumDebug) console.log(data); });
         res.on('end', () => {
 
             if (debug)
@@ -749,6 +775,10 @@ function removeArrayItem(arr) {
 function getCell(rowIndex, cellIndex) {
     if (!currentWorkbook)
         return " ";
+
+
+    if (maximumDebug)
+        console.log(currentWorkbook.getWorksheet(1).getRow(rowIndex).getCell(cellIndex));
 
     return currentWorkbook.getWorksheet(1).getRow(rowIndex).getCell(cellIndex);
 }
