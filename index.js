@@ -1,6 +1,5 @@
-// SET THIS VARIABLES TO "TRUE" IF YOU WANT TO WATCH ALL LOGS
-var debug = true;
-var maximumDebug = true;
+// SET THIS VARIABLE TO "TRUE" IF YOU WANT TO WATCH ALL LOGS
+var debug = false;
 
 
 
@@ -33,14 +32,14 @@ var correctWorksheet = null;
 var incorrectWorksheet = null;
 var invalidWorksheet = null;
 
-var lastNameRow = 3,          // Фамилия
-    firstNameRow = 4,         // Имя
-    middleNameRow = 5,        // Отчество
-    birthdayRow = 12,         // Дата рождения
-    passportSeriesRow = 7,    // Серия паспорта
-    passportNumberRow = 8,    // Номер паспорта
-    passportDateRow = 10,     // Дата выдачи паспорта
-    resultRow = 11;           // Куда писать результат
+var lastNameRow = 2,          // Фамилия
+    firstNameRow = 3,         // Имя
+    middleNameRow = 4,        // Отчество
+    birthdayRow = 18,         // Дата рождения
+    passportSeriesRow = 15,    // Серия паспорта
+    passportNumberRow = 16,    // Номер паспорта
+    passportDateRow = 17,     // Дата выдачи паспорта
+    resultRow = 25;           // Куда писать результат
 
 
 
@@ -82,7 +81,7 @@ function inputValues () {
                                 r1.question('Колонка для записи результата: ', function (test) {
                                     resultRow = test.toUpperCase();
                                     r1.question('Количество потоков: ', function (test) {
-                                        //THREADS_MAX_COUNT = test;
+                                        THREADS_MAX_COUNT = test;
 
                                         startParsing();
 
@@ -100,9 +99,6 @@ function inputValues () {
 
 
 function selectFile() {
-
-    if (maximumDebug)
-        console.log("selectFile()");
 
     checkedPersonsCount = 0;
     correctPersonsCount = 0;
@@ -137,10 +133,6 @@ function selectFile() {
 
 
 function startParsing(fileName) {
-
-    if (maximumDebug)
-        console.log("Starting parsing");
-
     currentWorkbook = new XLSX.Workbook();
 
     currentWorkbook.xlsx.readFile('input/' + fileName)
@@ -210,10 +202,6 @@ function runNewThread() {
 // Working with CAPTCHA
 
 function getCaptchaPage() {
-
-    if (maximumDebug)
-        console.log("GETTING CAPTCHA PAGE -----------------------------------------");
-
     var options = {
         host: 'service.nalog.ru',
         port: 443,
@@ -249,10 +237,6 @@ function getCaptchaPage() {
 }
 
 function getCaptcha(html) {
-
-    if (maximumDebug)
-        console.log("EXTRACTING CAPTCHA FROM PAGE -------------------");
-
     var captchaToken = findCaptchaToken(html);
 
     if (!captchaToken)
@@ -286,15 +270,11 @@ function findCaptchaToken(html) {
 }
 
 function loadCaptchaBase64(captchaToken) {
-    https.get('https://service.nalog.ru/static/captcha.html?a='+captchaToken+'&version=1', function (response) {
+    https.get('https://service.nalog.ru/static/captcha.html?a='+captchaToken+'&version=3', function (response) {
         response.setEncoding('base64');
         var body = "";
         response.on('data', (data) => { body += data; });
         response.on('end', () => {
-
-            if (maximumDebug)
-                console.log("CAPTCHA BASE64: " + body);
-
             onCaptchaLoaded(body, captchaToken);
         });
     }).on('error', function (e) {
@@ -308,10 +288,8 @@ function loadCaptchaBase64(captchaToken) {
 }
 
 function onCaptchaLoaded(base64, captchaToken) {
-
-    if (maximumDebug)
-        console.log("CREATING CAPTCHA SOLVERS TASK ----------------");
-
+//console.log("\n\n\n" + base64 + "\n\n\n");
+//return;
     var responseBody = "";
 
     var postData = JSON.stringify({
@@ -590,10 +568,6 @@ function checkPerson(captcha, captchaToken) {
     if (debug)
         console.log(serialize(postData));
 
-
-    if (maximumDebug)
-        console.log(postData);
-
     function getDate(date){
 
         if (!date)
@@ -651,7 +625,7 @@ function checkPerson(captcha, captchaToken) {
     };
 
     var req = https.request(options, (res) => {
-        res.on('data', (data) => { responseBody += data; if (maximumDebug) console.log(data); });
+        res.on('data', (data) => { responseBody += data });
         res.on('end', () => {
 
             if (debug)
@@ -775,10 +749,6 @@ function removeArrayItem(arr) {
 function getCell(rowIndex, cellIndex) {
     if (!currentWorkbook)
         return " ";
-
-
-    if (maximumDebug)
-        console.log(currentWorkbook.getWorksheet(1).getRow(rowIndex).getCell(cellIndex));
 
     return currentWorkbook.getWorksheet(1).getRow(rowIndex).getCell(cellIndex);
 }
